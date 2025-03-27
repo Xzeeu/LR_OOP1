@@ -2,6 +2,8 @@
 //
 
 #include <iostream>
+#include "PatternTemplates.h"
+
 using namespace std;
 
 
@@ -133,7 +135,7 @@ enum class SmartHomeType : int
     Google = 2,
     HomeKit = 3,
 
-    Undefined = 0 // На всякий случай
+    Undefined = 0
 };
 
 Smart_home* CreateSmart_home(SmartHomeType type)
@@ -156,6 +158,15 @@ Smart_home* CreateSmart_home(SmartHomeType type)
     return newSmartHome;
 }
 
+void MusicAll(Iterator<Smart_home*>* it)
+{
+    for (it->First(); !it->IsDone(); it->Next())
+    {
+        Smart_home* currentSmart_home = it->GetCurrent();
+        currentSmart_home->music();
+    }
+}
+
 int main()
 {
     setlocale(LC_ALL, "Russian");
@@ -169,6 +180,68 @@ int main()
     Smart_home* newSmart_home = CreateSmart_home(type);
     newSmart_home->music();
     delete newSmart_home;
+
+    cout << endl;
+
+    // Стек
+
+
+    size_t N = 0;
+    wcout << L"Введите количество систем: ";
+    cin >> N;
+
+    StackClass<Smart_home*> Smart_homeStack;
+    for (size_t i = 0; i < N; i++)
+    {
+        int fruit_num = rand() % 3 + 1; // Число от 1 до 3 (случайный фрукт)
+        SmartHomeType fruit_type = static_cast<SmartHomeType>(fruit_num);
+        Smart_home* newSmart_home = CreateSmart_home(fruit_type);
+        Smart_homeStack.Push(newSmart_home);
+    }
+
+    wcout << L"Размер стека систем: " << Smart_homeStack.Size() << endl;
+
+    Iterator<Smart_home*>* it2 = new StackIterator<Smart_home*>(&Smart_homeStack);
+    MusicAll(it2);
+    delete it2;
+
+    cout << endl << endl;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //yandex_Alice newYA;
 
