@@ -29,12 +29,12 @@ public:
 
 Smart_home::Smart_home() : Voice_assistant("No"), russian_language(false), protocols("wi-fi"), OS("Windows, Android, iOS")
 {
-    cout << "Creating Smart home..." << endl;
+    //cout << "Creating Smart home..." << endl;
 }
 
 Smart_home::~Smart_home()
 {
-    cout << "Deleting Smart home..." << endl;
+    //cout << "Deleting Smart home..." << endl;
 }
 
 
@@ -54,16 +54,16 @@ yandex_Alice::yandex_Alice() : Smart_home()
     Voice_assistant = "Alice";
     protocols = "Zigbee, Matter, Wi-Fi";
 
-    cout << "Creating yandex Alice..." << endl;
+    //cout << "Creating yandex Alice..." << endl;
 }
 
 yandex_Alice::~yandex_Alice()
 {
-    cout << "Deleting yandex_Alice..." << endl;
+    //cout << "Deleting yandex_Alice..." << endl;
 }
 
 string yandex_Alice::get_voice_assistant() const {
-    cout << Smart_home::get_voice_assistant() << " - Виртуальный голосовой помощник, созданный компанией Яндекс." << endl;
+    //cout << Smart_home::get_voice_assistant() << " - Виртуальный голосовой помощник, созданный компанией Яндекс." << endl;
 
     return Smart_home::get_voice_assistant();
 }
@@ -84,11 +84,11 @@ google_home::google_home() : Smart_home() {
     Voice_assistant = "Google Assistant";
     protocols = "Bluetooth, Matter, Wi-Fi";
 
-    cout << "Creating google_home..." << endl;
+    // << "Creating google_home..." << endl;
 }
 
 google_home::~google_home() {
-    cout << "Deleting google_home..." << endl;
+    //cout << "Deleting google_home..." << endl;
 }
 
 void google_home::music() {
@@ -110,11 +110,11 @@ homekit::homekit() : Smart_home() {
     Voice_assistant = "Siri";
     protocols = "Bluetooth, Matter, Wi-Fi";
 
-    cout << "Creating homekit..." << endl;
+    //cout << "Creating homekit..." << endl;
 }
 
 homekit::~homekit() {
-    cout << "Deleting homekit..." << endl;
+   // cout << "Deleting homekit..." << endl;
 }
 
 void homekit::music() {
@@ -122,78 +122,119 @@ void homekit::music() {
 }
 
 void homekit::TV() {
-    cout << "Включаю AppleTV" << endl;
+    //cout << "Включаю AppleTV" << endl;
+}
+
+// Реализация паттерна "Фабричный метод"
+
+enum class SmartHomeType : int
+{
+    Yandex = 1,
+    Google = 2,
+    HomeKit = 3,
+
+    Undefined = 0 // На всякий случай
+};
+
+Smart_home* CreateSmart_home(SmartHomeType type)
+{
+    Smart_home* newSmartHome = nullptr;
+
+    if (type == SmartHomeType::Yandex)
+    {
+        newSmartHome = new yandex_Alice;
+    }
+    else if (type == SmartHomeType::Google)
+    {
+        newSmartHome = new google_home;
+    }
+    else if (type == SmartHomeType::HomeKit)
+    {
+        newSmartHome = new homekit;
+    }
+
+    return newSmartHome;
 }
 
 int main()
 {
     setlocale(LC_ALL, "Russian");
 
-    yandex_Alice newYA;
+    wcout << L"На какой платформе включить музыку (1 - Yandex, 2 - Google, 3 - HomeKit)?" << endl;
+    SmartHomeType type = SmartHomeType::Undefined;
+    int ii;
+    cin >> ii;
+    type = static_cast<SmartHomeType>(ii);
 
-    cout << "Голосовой помощник: " << newYA.get_voice_assistant() << endl;
-    cout << "Поддерживаемые ОС: " << newYA.getOS() << endl;
-    newYA.music();
+    Smart_home* newSmart_home = CreateSmart_home(type);
+    newSmart_home->music();
+    delete newSmart_home;
 
-    cout << endl;
+    //yandex_Alice newYA;
 
-    google_home newGH;
+    ////cout << "Голосовой помощник: " << newYA.get_voice_assistant() << endl;
+    ////cout << "Поддерживаемые ОС: " << newYA.getOS() << endl;
+    //newYA.music();
 
-    cout << "Голосовой помощник: " << newGH.get_voice_assistant() << endl;
-    cout << "Поддерживаемые ОС: " << newGH.getOS() << endl;
-    newGH.music();
+    //cout << endl;
 
-    cout << endl;
+    //google_home newGH;
 
-    homekit newHK;
+    ////cout << "Голосовой помощник: " << newGH.get_voice_assistant() << endl;
+    ////cout << "Поддерживаемые ОС: " << newGH.getOS() << endl;
+    //newGH.music();
 
-    cout << "Голосовой помощник: " << newHK.get_voice_assistant() << endl;
-    cout << "Поддерживаемые ОС: " << newHK.getOS() << endl;
-    newHK.music();
-    newHK.TV();
+    //cout << endl;
 
+    //homekit newHK;
 
-    cout << endl;
-
-    //ПРИМЕР ПОЛИМОРФИЗМА
-
-    Smart_home* newSmart_home1 = new yandex_Alice; // Инициализация указателя экземпляром унаследованного класса
-    Smart_home* newSmart_home2 = new google_home;
-
-    // Создание экземпляра класса с созданием ссылки
-
-    homekit temp_homekit;
-    Smart_home& newSmart_home3 = temp_homekit;
-
-    cout << endl;
-
-    cout << "Использование интерфейса родительского класса" << endl;
-
-    cout << "OS Yandex Alice: " << newSmart_home1->getOS() << endl;
-    cout << "OS Google Home: " << newSmart_home2->getOS() << endl;
-    cout << "OS Apple Homehit : " << newSmart_home3.getOS() << endl;
+    ////cout << "Голосовой помощник: " << newHK.get_voice_assistant() << endl;
+    ////cout << "Поддерживаемые ОС: " << newHK.getOS() << endl;
+    //newHK.music();
+    //newHK.TV();
 
 
-    cout << endl;
+    //cout << endl;
 
-    cout << "Вызов функции, реализация которой была переопределена в унаследованном классе" << endl;
+    ////ПРИМЕР ПОЛИМОРФИЗМА
 
-    string appleWeight2 = newSmart_home1->get_voice_assistant();
-    string appleWeight3 = newSmart_home3.get_voice_assistant();
-    cout << appleWeight2 << " " << appleWeight3 << endl;
+    //Smart_home* newSmart_home1 = new yandex_Alice; // Инициализация указателя экземпляром унаследованного класса
+    //Smart_home* newSmart_home2 = new google_home;
 
-    cout << endl;
+    //// Создание экземпляра класса с созданием ссылки
+
+    //homekit temp_homekit;
+    //Smart_home& newSmart_home3 = temp_homekit;
+
+    //cout << endl;
+
+    ////cout << "Использование интерфейса родительского класса" << endl;
+
+    ////cout << "OS Yandex Alice: " << newSmart_home1->getOS() << endl;
+    ////cout << "OS Google Home: " << newSmart_home2->getOS() << endl;
+    ////cout << "OS Apple Homehit : " << newSmart_home3.getOS() << endl;
 
 
-    cout << "Вызов виртуальной функции" << endl;
-    newSmart_home1->music();
-    newSmart_home2->music();
-    newSmart_home3.music();
+    //cout << endl;
 
-    cout << endl;
+    ////cout << "Вызов функции, реализация которой была переопределена в унаследованном классе" << endl;
 
-    delete newSmart_home1;
-    delete newSmart_home2;
+    //string appleWeight2 = newSmart_home1->get_voice_assistant();
+    //string appleWeight3 = newSmart_home3.get_voice_assistant();
+    ////cout << appleWeight2 << " " << appleWeight3 << endl;
+
+    ////cout << endl;
+
+
+    ////cout << "Вызов виртуальной функции" << endl;
+    //newSmart_home1->music();
+    //newSmart_home2->music();
+    //newSmart_home3.music();
+
+    //cout << endl;
+
+    //delete newSmart_home1;
+    //delete newSmart_home2;
 
 
 }
