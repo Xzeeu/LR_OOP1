@@ -1,70 +1,49 @@
-#ifndef PatternTemplatesH
-#define PatternTemplatesH
+#ifndef PatterntemplatesH
+#define PatterntemplatesH
 
-// Шаблонный класс "Стек"
+// Стек
 
 const size_t MaxSize = 100;
 
-template <typename T> // T - подставляемый тип данных
-class StackClass
+template <typename Data_type>
+class Stack_class
+{
+private:
+    Data_type items[MaxSize];
+    size_t top;
+
+public:
+    bool Is_empty() const { return (top == 0); }
+    size_t Size() const { return top; }
+    void Push(Data_type newObject) { items[top++] = newObject; }
+    Data_type Pop() { return items[--top]; }
+    Data_type Get_element_index(size_t index) const { return items[index]; }
+
+    Stack_class() : top(0) {}
+};
+
+// Массив
+
+template <typename Data_type>
+class Array_class
 {
 private:
 
-    // Собственно контейнер, содержащий данные типа T
-    T Items[MaxSize];
-
-    // Индекс элемента стека, следующего за верхним
-    size_t Top;
+    Data_type items[MaxSize];
+    size_t array_size;
 
 public:
 
-    // Проверка того, является ли стек пустым
-    bool IsEmpty() const { return (Top == 0); }
+    void Add(Data_type newObject) { items[array_size++] = newObject; }
+    size_t Size() const { return array_size; }
+    Data_type GetElement(size_t index) const { return items[index]; }
 
-    // Определение размера стека
-    size_t Size() const { return Top; }
-
-    // Поместить в стек новый элемент
-    void Push(T newObject) { Items[Top++] = newObject; }
-
-    // Извлечь из списка верхний элемент
-    T Pop() { return Items[--Top]; }
-
-    // Получение элемента по индексу
-    T GetElementByIndex(size_t index) const { return Items[index]; }
-
-    // Конструктор
-    StackClass() : Top(0) {}
+    Array_class() : array_size(0) {}
 };
 
-// Шаблонный класс "Массив"
+// Итератор
 
-template <typename T>
-class ArrayClass
-{
-private:
-
-    T Items[MaxSize];
-    size_t ArraySize;
-
-public:
-
-    void Add(T newObject) { Items[ArraySize++] = newObject; }
-    size_t Size() const { return ArraySize; }
-
-    // Первый вариант получения элемента по индексу (перегрузка оператора [])
-    T operator[](size_t index) const { return Items[index]; }
-
-    // Второй вариант получения элемента по индексу
-    T GetElement(size_t index) const { return Items[index]; }
-
-    ArrayClass() : ArraySize(0) {}
-};
-
-// Шаблонный класс, реализующий паттерн "Итератор"
-// (класс абстрактный, так как содержит функции без реализации)
-
-template<typename T> // T - подставляемый тип данных (элемент контейнера)
+template<typename Data_type>
 class Iterator
 {
 protected:
@@ -72,52 +51,50 @@ protected:
 
 public:
     virtual ~Iterator() {}
-    virtual void First() = 0; // Спозиционироваться на начале контейнера
-    virtual void Next() = 0;  // Перейти к следующему элементу
-    virtual bool IsDone() const = 0;  // Проверить, достигнут ли конец
-    virtual T GetCurrent() const = 0; // Получить текущий элемент
+    virtual void First() = 0;
+    virtual void Next() = 0;
+    virtual bool IsDone() const = 0;
+    virtual Data_type GetCurrent() const = 0;
 };
 
-// Реализация паттерна "Итератор",
-// предназначенная для обхода массива
+// Итератор для обхода массива
 
-template<typename T>
-class ArrayIterator : public Iterator<T>
+template<typename Data_type>
+class ArrayIterator : public Iterator<Data_type>
 {
 private:
-    const ArrayClass<T>* ArrayContainer; // Указатель на массив
-    size_t Pos; // Текущее положение в массиве
+    const Array_class<Data_type>* ArrayContainer;
+    size_t Pos;
 
 public:
-    ArrayIterator(ArrayClass<T>* container)
+    ArrayIterator(Array_class<Data_type>* container)
         : ArrayContainer(container), Pos(0) {
     }
 
     void First() override { Pos = 0; }
     void Next() override { Pos++; }
     bool IsDone() const override { return (Pos >= ArrayContainer->Size()); }
-    T GetCurrent() const override { return ArrayContainer->GetElement(Pos); }
+    Data_type GetCurrent() const override { return ArrayContainer->GetElement(Pos); }
 };
 
-// Реализация паттерна "Итератор",
-// предназначенная для обхода стека
+// Итератор для обхода стека
 
-template<typename T>
-class StackIterator : public Iterator<T>
+template<typename Data_type>
+class StackIterator : public Iterator<Data_type>
 {
 private:
-    const StackClass<T>* StackContainer; // Указатель на массив
-    size_t Pos; // Текущее положение в массиве
+    const Stack_class<Data_type>* StackContainer;
+    size_t Pos;
 
 public:
-    StackIterator(StackClass<T>* container)
+    StackIterator(Stack_class<Data_type>* container)
         : StackContainer(container), Pos(0) {
     }
 
     void First() override { Pos = 0; }
     void Next() override { Pos++; }
     bool IsDone() const override { return (Pos >= StackContainer->Size()); }
-    T GetCurrent() const override { return StackContainer->GetElementByIndex(Pos); }
+    Data_type GetCurrent() const override { return StackContainer->Get_element_index(Pos); }
 };
 
-#endif // PatternTemplatesH
+#endif // PatterntemplatesH
