@@ -209,6 +209,26 @@ int main()
 
 
 
+    // 3. Массив
+
+    ArrayClass<Smart_home*> fruitArray;
+    for (size_t i = 0; i < 5; i++)
+    {
+        int fruit_num = rand() % 3 + 1; // Число от 1 до 3 (случайный фрукт)
+        SmartHomeType fruit_type = static_cast<SmartHomeType>(fruit_num);
+        Smart_home* newSmart_home = CreateSmart_home(fruit_type);
+        fruitArray.Add(newSmart_home);
+    }
+
+    wcout << L"Размер массива фруктов: " << Smart_homeStack.Size() << endl;
+
+
+    Iterator<Smart_home*>* it3 = new ArrayIterator<Smart_home*>(&fruitArray);
+    MusicAll(it3);
+    delete it3;
+
+
+
 
 
 
