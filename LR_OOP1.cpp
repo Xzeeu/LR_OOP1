@@ -16,10 +16,56 @@ enum class Source_power : int
     Unknown
 };
 
+// Способы включения музыки
+
+enum class music_launch_method : int
+{
+    mobile_app,
+    voice,
+    website,
+
+    None
+};
+
+class MusicStartStrategy {
+public:
+    virtual ~MusicStartStrategy() {}
+    virtual void music() = 0;
+};
+
+class MobileAppMusicStartStrategy : public MusicStartStrategy
+{
+    void music() { cout << "Запускаю музыку с мобильного приложения"; }
+};
+
+class VoiceMusicStartStrategy : public MusicStartStrategy
+{
+    void music() { cout << "Запускаю музыку голосом"; }
+};
+
+class WebsiteMusicStartStrategy : public MusicStartStrategy
+{
+    void music() { cout << "Запускаю музыку с сайта"; }
+};
+
+
+MusicStartStrategy* CreateMusicStartStrategy(music_launch_method manner) {
+    switch (manner) {
+    case music_launch_method::mobile_app: return new MobileAppMusicStartStrategy;
+    case music_launch_method::voice: return new VoiceMusicStartStrategy;
+    case music_launch_method::website: return new WebsiteMusicStartStrategy;
+    default:return nullptr;
+
+    }
+}
+
+
 class Smart_home {
 private:
     bool russian_language;
     Source_power Power;
+
+    MusicStartStrategy* __MusicStartStrategy;
 
 protected:
     string voice_assistant;
@@ -30,12 +76,16 @@ protected:
 
 
 public:
-    Smart_home(Source_power power) : Power(power), subscription(false) {
+    Smart_home(Source_power power) : Power(power), subscription(false), __MusicStartStrategy(nullptr) {
 
         subscription = static_cast<bool>(rand() % 2);
     
-    }; // Конструктор
-    virtual ~Smart_home(); // Деструктор
+    };
+
+    virtual ~Smart_home() {
+        if (__MusicStartStrategy != nullptr) delete __MusicStartStrategy;
+    }
+
 
     string get_voice_assistant() const { return voice_assistant; }
     bool get_russian_language() const { return russian_language; }
@@ -45,14 +95,29 @@ public:
     // Функция с реализацией
     Source_power GetPower() const { return Power; }
 
+    // Функция задания способа запуска музыки
+
+    void SetMusicStartStrategy(MusicStartStrategy* musicStartStrategy)
+    {
+        __MusicStartStrategy = musicStartStrategy;
+    }
+
     virtual void music() {
         if (IsSubscription())
         {
-            cout << "Включаю Яндекс Музыку" << endl;
+            cout << "Включаю музыку ";
         }
         else
         {
             cout << "Нет подписки! НЕ ";
+        }
+
+        if (__MusicStartStrategy != nullptr) {
+            __MusicStartStrategy->music();
+        }
+        else
+        {
+            cout << "Ничего не делать! ";
         }
     }
 
@@ -60,7 +125,7 @@ public:
 
 //Smart_home::Smart_home() : voice_assistant("No"), russian_language(false), protocols("wi-fi"), OS("Windows, Android, iOS"){}
 
-Smart_home::~Smart_home(){}
+//Smart_home::~Smart_home(){}
 
 class yandex_Alice : public Smart_home {
 public:
@@ -74,6 +139,7 @@ public:
 
 yandex_Alice::yandex_Alice() : Smart_home(Source_power::High)
 {
+    SetMusicStartStrategy(CreateMusicStartStrategy(music_launch_method::voice));
     voice_assistant = "Alice";
     protocols = "Zigbee, Matter, Wi-Fi";
 }
@@ -83,8 +149,10 @@ yandex_Alice::~yandex_Alice(){}
 string yandex_Alice::get_voice_assistant() const {return Smart_home::get_voice_assistant();}
 
 void yandex_Alice::music() {
+    cout << "Включаю Яндекс Музыку ";
     Smart_home::music();
-    cout << "Включаю Яндекс Музыку" << endl;
+
+    cout << endl;
 }
 
 class google_home : public Smart_home {
@@ -96,6 +164,7 @@ public:
 };
 
 google_home::google_home() : Smart_home(Source_power::Low) {
+    SetMusicStartStrategy(CreateMusicStartStrategy(music_launch_method::website));
     voice_assistant = "Google Assistant";
     protocols = "Bluetooth, Matter, Wi-Fi";
 }
@@ -103,8 +172,10 @@ google_home::google_home() : Smart_home(Source_power::Low) {
 google_home::~google_home() {}
 
 void google_home::music() {
+    cout << "Включаю Youtube music ";
     Smart_home::music();
-    cout << "Включаю Youtube music" << endl;
+
+    cout << endl;
 }
 
 class homekit : public Smart_home {
@@ -117,6 +188,7 @@ public:
 };
 
 homekit::homekit() : Smart_home(Source_power::Average) {
+    SetMusicStartStrategy(CreateMusicStartStrategy(music_launch_method::mobile_app));
     OS = "IOS";
     voice_assistant = "Siri";
     protocols = "Bluetooth, Matter, Wi-Fi";
@@ -125,8 +197,10 @@ homekit::homekit() : Smart_home(Source_power::Average) {
 homekit::~homekit() {}
 
 void homekit::music() {
+    cout << "Включаю Apple music ";
     Smart_home::music();
-    cout << "Включаю Apple music" << endl;
+
+    cout << endl;
 }
 
 //void homekit::tV() {
