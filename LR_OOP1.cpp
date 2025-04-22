@@ -67,6 +67,27 @@ private:
 
     MusicStartStrategy* __MusicStartStrategy;
 
+    void DoMusicStartStrategy() {
+        if (__MusicStartStrategy != nullptr) {
+            __MusicStartStrategy->music();
+        }
+        else
+        {
+            cout << "Ничего не делать! ";
+        }
+    }
+
+    void DetectSubscription() {
+        if (IsSubscription())
+        {
+            cout << "Есть подписка ";
+        }
+        else
+        {
+            cout << "Нет подписки! ";
+        }
+    }
+
 protected:
     string voice_assistant;
     string protocols;
@@ -102,25 +123,28 @@ public:
         __MusicStartStrategy = musicStartStrategy;
     }
 
-    virtual void music() {
-        if (IsSubscription())
-        {
-            cout << "Включаю музыку ";
-        }
-        else
-        {
-            cout << "Нет подписки! НЕ ";
-        }
+    virtual void PrintType() = 0;
+    virtual void ChoiceTrack() = 0;
 
-        if (__MusicStartStrategy != nullptr) {
-            __MusicStartStrategy->music();
-        }
-        else
-        {
-            cout << "Ничего не делать! ";
-        }
+    void music()
+    {
+        // Вывести тип системы
+        PrintType();
+        cout << " : ";
+
+        //Определить есть ли подписка 
+        DetectSubscription();
+        cout << " : ";
+
+        //Включить слудующий трек
+        ChoiceTrack();
+        cout << " : ";
+
+        // Запустить с использованием стратегии
+        DoMusicStartStrategy();
+
+        cout << endl;
     }
-
 };
 
 //Smart_home::Smart_home() : voice_assistant("No"), russian_language(false), protocols("wi-fi"), OS("Windows, Android, iOS"){}
@@ -134,7 +158,8 @@ public:
 
     string get_voice_assistant() const;
 
-    void music();
+    void PrintType() { cout << "Яндекс Музыка"; };
+    void ChoiceTrack() { cout << "Говорю Станции название трека"; };
 };
 
 yandex_Alice::yandex_Alice() : Smart_home(Source_power::High)
@@ -148,19 +173,13 @@ yandex_Alice::~yandex_Alice(){}
 
 string yandex_Alice::get_voice_assistant() const {return Smart_home::get_voice_assistant();}
 
-void yandex_Alice::music() {
-    cout << "Включаю Яндекс Музыку ";
-    Smart_home::music();
-
-    cout << endl;
-}
-
 class google_home : public Smart_home {
 public:
     google_home();
     ~google_home();
 
-    void music();
+    void PrintType() { cout << "Youtube music"; };
+    void ChoiceTrack() { cout << "Захожу на сайт выбрать трек"; };
 };
 
 google_home::google_home() : Smart_home(Source_power::Low) {
@@ -171,20 +190,16 @@ google_home::google_home() : Smart_home(Source_power::Low) {
 
 google_home::~google_home() {}
 
-void google_home::music() {
-    cout << "Включаю Youtube music ";
-    Smart_home::music();
-
-    cout << endl;
-}
 
 class homekit : public Smart_home {
 public:
     homekit();
     ~homekit();
 
-    void music();
+    //void music();
     //void tV();
+    void PrintType() { cout << "Apple music"; };
+    void ChoiceTrack() { cout << "Захожу в приложение выбрать трек"; };
 };
 
 homekit::homekit() : Smart_home(Source_power::Average) {
@@ -196,12 +211,6 @@ homekit::homekit() : Smart_home(Source_power::Average) {
 
 homekit::~homekit() {}
 
-void homekit::music() {
-    cout << "Включаю Apple music ";
-    Smart_home::music();
-
-    cout << endl;
-}
 
 //void homekit::tV() {
 //    //cout << "Включаю AppletV" << endl;
@@ -323,6 +332,7 @@ int main()
         int smarthome_num = rand() % 3 + 1; // Число от 1 до 3
         Smart_home_type smart_home_type = static_cast<Smart_home_type>(smarthome_num);
         Smart_home* newSmartHome = Create_smart_home(smart_home_type);
+        //newSmartHome->SetMusicStartStrategy(CreateMusicStartStrategy(music_launch_method::mobile_app));
         smarthomeArray.Add(newSmartHome);
     }
 
