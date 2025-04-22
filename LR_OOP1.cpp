@@ -2,34 +2,63 @@
 //
 
 #include <iostream>
+#include <list>
 #include "Patterntemplates.h"
 
 using namespace std;
 
+// Мощность колонки
+enum class Source_power : int
+{
+    Low,
+    Average,
+    High,
+    Unknown
+};
 
 class Smart_home {
 private:
     bool russian_language;
+    Source_power Power;
 
 protected:
     string voice_assistant;
     string protocols;
     string OS;
 
+    bool subscription;
+
 
 public:
-    Smart_home(); // Конструктор
+    Smart_home(Source_power power) : Power(power), subscription(false) {
+
+        subscription = static_cast<bool>(rand() % 2);
+    
+    }; // Конструктор
     virtual ~Smart_home(); // Деструктор
 
     string get_voice_assistant() const { return voice_assistant; }
     bool get_russian_language() const { return russian_language; }
     string getOS() const { return OS; }
 
-    virtual void music() = 0;
+    bool IsSubscription() const { return subscription; }
+    // Функция с реализацией
+    Source_power GetPower() const { return Power; }
+
+    virtual void music() {
+        if (IsSubscription())
+        {
+            cout << "Включаю Яндекс Музыку" << endl;
+        }
+        else
+        {
+            cout << "Нет подписки! НЕ ";
+        }
+    }
 
 };
 
-Smart_home::Smart_home() : voice_assistant("No"), russian_language(false), protocols("wi-fi"), OS("Windows, Android, iOS"){}
+//Smart_home::Smart_home() : voice_assistant("No"), russian_language(false), protocols("wi-fi"), OS("Windows, Android, iOS"){}
 
 Smart_home::~Smart_home(){}
 
@@ -43,7 +72,7 @@ public:
     void music();
 };
 
-yandex_Alice::yandex_Alice() : Smart_home()
+yandex_Alice::yandex_Alice() : Smart_home(Source_power::High)
 {
     voice_assistant = "Alice";
     protocols = "Zigbee, Matter, Wi-Fi";
@@ -54,6 +83,7 @@ yandex_Alice::~yandex_Alice(){}
 string yandex_Alice::get_voice_assistant() const {return Smart_home::get_voice_assistant();}
 
 void yandex_Alice::music() {
+    Smart_home::music();
     cout << "Включаю Яндекс Музыку" << endl;
 }
 
@@ -65,7 +95,7 @@ public:
     void music();
 };
 
-google_home::google_home() : Smart_home() {
+google_home::google_home() : Smart_home(Source_power::Low) {
     voice_assistant = "Google Assistant";
     protocols = "Bluetooth, Matter, Wi-Fi";
 }
@@ -73,6 +103,7 @@ google_home::google_home() : Smart_home() {
 google_home::~google_home() {}
 
 void google_home::music() {
+    Smart_home::music();
     cout << "Включаю Youtube music" << endl;
 }
 
@@ -82,10 +113,10 @@ public:
     ~homekit();
 
     void music();
-    void tV();
+    //void tV();
 };
 
-homekit::homekit() : Smart_home() {
+homekit::homekit() : Smart_home(Source_power::Average) {
     OS = "IOS";
     voice_assistant = "Siri";
     protocols = "Bluetooth, Matter, Wi-Fi";
@@ -94,12 +125,13 @@ homekit::homekit() : Smart_home() {
 homekit::~homekit() {}
 
 void homekit::music() {
+    Smart_home::music();
     cout << "Включаю Apple music" << endl;
 }
 
-void homekit::tV() {
-    //cout << "Включаю AppletV" << endl;
-}
+//void homekit::tV() {
+//    //cout << "Включаю AppletV" << endl;
+//}
 
 // Фабричный метод
 
@@ -132,6 +164,68 @@ Smart_home* Create_smart_home(Smart_home_type type)
     return new_smart_home;
 }
 
+
+// Декоратор итератора для выделения устройств по мощности
+
+class PowerDecorator : public IteratorDecorator<class Smart_home*>
+{
+private:
+    Source_power TargetPower;
+
+public:
+    PowerDecorator(Iterator<Smart_home*>* it, Source_power power)
+        : IteratorDecorator<Smart_home*>(it), TargetPower(power) {}
+
+    void First()
+    {
+        It->First();
+        while (!It->IsDone() && It->GetCurrent()->GetPower() != TargetPower)
+        {
+            It->Next();
+        }
+    }
+
+    void Next()
+    {
+        do
+        {
+            It->Next();
+
+        } while (!It->IsDone() && It->GetCurrent()->GetPower() != TargetPower);
+    }
+};
+
+// Декоратор итератора для выделения устройств по наличию подписки
+
+class SubscriptionDecorator : public IteratorDecorator<class Smart_home*>
+{
+private:
+    bool TargetSubscription;
+
+public:
+    SubscriptionDecorator(Iterator<Smart_home*>* it, bool isSubscription)
+        : IteratorDecorator<Smart_home*>(it), TargetSubscription(isSubscription) {}
+
+    void First()
+    {
+        It->First();
+        while (!It->IsDone() && It->GetCurrent()->IsSubscription() != TargetSubscription)
+        {
+            It->Next();
+        }
+    }
+
+    void Next()
+    {
+        do
+        {
+            It->Next();
+
+        } while (!It->IsDone() && It->GetCurrent()->IsSubscription() != TargetSubscription);
+    }
+};
+
+
 void Music_all(Iterator<Smart_home*>* it)
 {
     for (it->First(); !it->IsDone(); it->Next())
@@ -145,61 +239,65 @@ int main()
 {
     setlocale(LC_ALL, "Russian");
 
-    wcout << L"На какой платформе включить музыку (1 - Yandex, 2 - Google, 3 - HomeKit)?" << endl;
-    Smart_home_type type = Smart_home_type::Undefined;
-    int ii;
-    cin >> ii;
-    type = static_cast<Smart_home_type>(ii);
+    size_t N = 30;
 
-    Smart_home* newSmart_home = Create_smart_home(type);
-    newSmart_home->music();
-    delete newSmart_home;
+    // Массив устройств
 
-    cout << endl;
-
-
-    size_t N = 0;
-    wcout << L"Введите количество систем: ";
-    cin >> N;
-
-    // Стек
-
-    Stack_class<Smart_home*> Smart_home_stack;
+    ArrayClass<Smart_home*> smarthomeArray;
     for (size_t i = 0; i < N; i++)
     {
-        int smart_home_num = rand() % 3 + 1;
-        Smart_home_type smart_home_type = static_cast<Smart_home_type>(smart_home_num);
-        Smart_home* newSmart_home = Create_smart_home(smart_home_type);
-        Smart_home_stack.Push(newSmart_home);
+        int smarthome_num = rand() % 3 + 1; // Число от 1 до 3
+        Smart_home_type smart_home_type = static_cast<Smart_home_type>(smarthome_num);
+        Smart_home* newSmartHome = Create_smart_home(smart_home_type);
+        smarthomeArray.Add(newSmartHome);
     }
 
-    wcout << L"Обход СТЕКА" << endl;
+    wcout << L"Размер массива устройств: " << smarthomeArray.Size() << endl;
 
-    Iterator<Smart_home*>* it2 = new StackIterator<Smart_home*>(&Smart_home_stack);
-    Music_all(it2);
-    delete it2;
-
-    cout << endl << endl;
-
-
-
-    // Массив
-
-    Array_class<Smart_home*> smart_home_array;
+    list<Smart_home*> smarthomeVector;
     for (size_t i = 0; i < N; i++)
     {
-        int smart_home_num = rand() % 3 + 1;
-        Smart_home_type smart_home_type = static_cast<Smart_home_type>(smart_home_num);
-        Smart_home* newSmart_home = Create_smart_home(smart_home_type);
-        smart_home_array.Add(newSmart_home);
+        int smarthome_num = rand() % 3 + 1; // Число от 1 до 3
+        Smart_home_type smart_home_type = static_cast<Smart_home_type>(smarthome_num);
+        Smart_home* newSmartHome = Create_smart_home(smart_home_type);
+        smarthomeVector.push_back(newSmartHome);
     }
 
-    wcout << L"Обход МАССИВА" << endl;
+    wcout << L"Размер списка устройств: " << smarthomeVector.size() << endl;
 
 
-    Iterator<Smart_home*>* it3 = new ArrayIterator<Smart_home*>(&smart_home_array);
-    Music_all(it3);
-    delete it3;
+
+    // Обход всех элементов при помощи итератора
+    cout << endl << "Попробовать запустить всё: " << endl;
+    Iterator<Smart_home*>* allIt = smarthomeArray.GetIterator();
+    Music_all(allIt);
+    delete allIt;
+
+    // Обход всех устройств с подпиской
+    cout << endl << "Запустить только если есть подписка:" << endl;
+    Iterator<Smart_home*>* goodIt = new SubscriptionDecorator(smarthomeArray.GetIterator(), true);
+    Music_all(goodIt);
+    delete goodIt;
+
+    // Обход всех мощных устройств
+    cout << endl << "Все мощные колонки:" << endl;
+    Iterator<Smart_home*>* orangeIt = new PowerDecorator(smarthomeArray.GetIterator(), Source_power::High);
+    Music_all(orangeIt);
+    delete orangeIt;
+
+    // Обход всех мощных устройств с подпиской
+    cout << endl << "Все мощные колонки с подпиской:" << endl;
+    Iterator<Smart_home*>* goodOrangeIt =
+        new SubscriptionDecorator(new PowerDecorator(smarthomeArray.GetIterator(), Source_power::High), true);
+    Music_all(goodOrangeIt);
+    delete goodOrangeIt;
+
+    // Демонстрация работы адаптера
+    cout << endl << "Все мощные колонки с подпиской (другой контейнер):" << endl;
+    Iterator<Smart_home*>* adaptedIt = new ConstIteratorAdapter <std::list<Smart_home*>, Smart_home*>(&smarthomeVector);
+    Iterator<Smart_home*>* adaptedOrangeIt = new SubscriptionDecorator(new PowerDecorator(adaptedIt, Source_power::High), true);
+    Music_all(adaptedOrangeIt);
+    delete adaptedOrangeIt;
 
 }
 
